@@ -1,0 +1,67 @@
+import tkinter as tk
+import tkinter.ttk as ttk
+
+from alumeco_data import AlumecoData
+
+
+class Alumeco(ttk.Frame):
+    def __init__(self, master=None):
+        ttk.Frame.__init__(self, master)
+        self.data = AlumecoData()
+       
+
+        self.build_GUI()
+
+        self.update_label()
+
+    def update_label(self):
+        l = self.data.get_list()
+        self.lblTotalOrders.config(text="Der er {} ordre som er uklaret".format(len(l))) 
+        self.db_view.delete(*self.db_view.get_children())
+        for o in l:
+            self.db_view.insert("", tk.END, values=(o.order_id, self.data.calculateTotalPrice(o.order_id), o.status, o.kunde))
+    def onOrderSelect(self, event):
+        curItem = self.db_view.item(self.db_view.focus())['values']
+        if len(curItem) > 0:
+           #make scrollbar show all the itesm in the order when selected.
+           print("aaaaa")
+
+    def build_GUI(self):
+        self.data_panel = ttk.Frame(self)
+        self.knap_panel = ttk.Frame(self)
+
+        self.lblTotalOrders = ttk.Label(self.knap_panel, text = 'Der er {} ordre som er uklaret'.format(None))
+        self.lblTotalOrders.grid(row = 1, column = 5)
+
+        self.order_items = ttk.Scrollbar(self.knap_panel, orient="horizontal")
+        self.order_items.grid(column=1, row=0)
+        self.db_view = ttk.Treeview(self.data_panel, column=("column1", "column2", "column3", "column4"), show='headings')
+        self.db_view.bind("<ButtonRelease-1>", self.onOrderSelect)
+        self.db_view.heading("#1", text="Ordrer ID")
+        self.db_view.heading("#2", text="Samlet Værdi")
+        self.db_view.heading("#3", text="Status")
+        self.db_view.heading("#4", text="Kunde")
+
+        self.db_view["displaycolumns"]=("column1", "column4", "column3", "column2")
+        ysb = ttk.Scrollbar(self.data_panel, command=self.db_view.yview, orient=tk.VERTICAL)
+        self.db_view.configure(yscrollcommand=ysb.set)
+        self.db_view.pack(side = tk.TOP)
+
+        self.data_panel.pack(side = tk.TOP)
+        self.knap_panel.pack(side = tk.LEFT)
+        #self.star_panel.grid(row=2, column=2)
+        self.pack()
+
+
+
+root = tk.Tk()
+root.geometry("800x400")
+
+img = tk.Image("photo", file="aaaa.png")
+root.iconphoto(True, img) # you may also want to try this.
+root.tk.call('wm','iconphoto', root._w, img)
+root.iconbitmap(img)
+
+app = Alumeco(root)
+app.master.title('Alumeco Order Manager')
+app.mainloop()
